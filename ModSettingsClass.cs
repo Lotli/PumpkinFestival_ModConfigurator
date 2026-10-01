@@ -15,40 +15,38 @@ namespace Mod_Settings
         bool debugMode = false;
         bool freezeMenuControls = false;
 
-        GameObject originalSettingsButton;
-        GameObject settingsButton;
+        private GameObject originalSettingsButton;
+        private GameObject settingsButton;
 
-        GameObject settingsMenuPrefab;
-        GameObject settingsMenu;
-        GameObject settingsMenuContent;
-        TMP_Text settingsMenuTitle;
-        TMP_Text settingsMenuDescription;
-        GameObject buttonPlaceholder;
+        private GameObject settingsMenuPrefab;
+        private GameObject settingsMenu;
+        private GameObject settingsMenuContent;
+        private TMP_Text settingsMenuTitle;
+        private TMP_Text settingsMenuDescription;
+        private GameObject buttonPlaceholder;
 
-        RectTransform rectSettingsButton;
-        TMP_Text textSettingButton;
+        private RectTransform rectSettingsButton;
+        private TMP_Text textSettingButton;
 
         private MelonPreferences_Category modSettingsPreferencesCategory;
         private MelonPreferences_Entry<bool> exampleFirstEntry;
         private MelonPreferences_Entry<int> exampleSecondEntry;
+        private MelonPreferences_Entry<string> customModSettingsDescription;
 
         private MelonPreferences_Entry currentEntry;
         private bool isInputOn = false;
         private string currentInput = "";
         private TMP_Text currentButtonText;
 
+        private GameObject mainUI;
+
+
         public override void OnInitializeMelon()
         {
-            MelonEvents.OnGUI.Subscribe(DrawMenu, 100);
             modSettingsPreferencesCategory = MelonPreferences.CreateCategory("Mod Configurator");
-            exampleFirstEntry = modSettingsPreferencesCategory.CreateEntry<bool>("FirstEntry", true);
-            exampleSecondEntry = modSettingsPreferencesCategory.CreateEntry<int>("SecondEntry", 5);
-        }
-
-        private void DrawMenu()
-        {
-            //GUI.Box(new Rect(10, 10, 150, 40), "Boat Glider\n By Lotli");
-            //flyingForce = float.Parse(GUI.TextArea(new Rect(10, 40, 150, 20), "1000"));
+            exampleFirstEntry = modSettingsPreferencesCategory.CreateEntry<bool>("FirstEntry", true, "First Entry");
+            exampleSecondEntry = modSettingsPreferencesCategory.CreateEntry<int>("SecondEntry", 5, "Second Entry");
+            customModSettingsDescription = modSettingsPreferencesCategory.CreateEntry<string>("CustomModSettingsDescription", "Test entries that do nothing.\nIf you are a mod developer add\nCustomModSettingsDescription entry\nto your category to get\na custom description in this tab");
         }
 
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
@@ -73,6 +71,8 @@ namespace Mod_Settings
                 textSettingButton = settingsButton.GetComponentInChildren<TMP_Text>();
                 textSettingButton.text = "Mod Settings";
 
+                mainUI = GameObject.Find("/UI/UICanvas/MainUI");
+
                 foreach (var obj in Resources.FindObjectsOfTypeAll<GameObject>())
                 {
                     if (obj != null && obj.name == "UI_ScrollingMenu_Base")
@@ -90,6 +90,12 @@ namespace Mod_Settings
         public override void OnUpdate()
         {
             ProcessInput();
+
+            if (mainUI != null && settingsButton != null)
+            {
+                if (mainUI.active && !settingsButton.active) settingsButton.active = true;
+                else if (!mainUI.active && settingsButton.active) settingsButton.active = false;
+            }
         }
 
         private void OnSettingsButtonClicked()
@@ -104,10 +110,10 @@ namespace Mod_Settings
                 settingsMenuContent = settingsMenu.transform.GetChild(1).GetChild(0).GetChild(0).gameObject;
 
                 settingsMenuTitle = settingsMenuContent.transform.FindChild("Title").GetComponent<TMP_Text>();
-                settingsMenuTitle.text = "Mod Settings";
+                settingsMenuTitle.text = "mod settings";
 
                 settingsMenuDescription = settingsMenuContent.transform.FindChild("Description").GetComponent<TMP_Text>();
-                settingsMenuDescription.text = "Configure your mods here";
+                settingsMenuDescription.text = "configure your mods here";
 
                 buttonPlaceholder = settingsMenuContent.transform.FindChild("Button").gameObject;
                 SpawnModCategoryButtons();
@@ -145,7 +151,7 @@ namespace Mod_Settings
                 button.name = category.DisplayName + "Button";
 
                 TMP_Text textButton = button.GetComponentInChildren<TMP_Text>();
-                textButton.text = category.DisplayName;
+                textButton.text = category.DisplayName.ToLower();
 
                 IconButton buttonToOverride = button.GetComponent<IconButton>();
                 buttonToOverride.onClick.RemoveAllListeners();
@@ -170,15 +176,16 @@ namespace Mod_Settings
                 modSettingsMenuContent = modSettingsMenu.transform.GetChild(1).GetChild(0).GetChild(0).gameObject;
 
                 modSettingsMenuTitle = modSettingsMenuContent.transform.FindChild("Title").GetComponent<TMP_Text>();
-                modSettingsMenuTitle.text = category.DisplayName;
+                modSettingsMenuTitle.text = category.DisplayName.ToLower();
 
                 modSettingsMenuDescription = modSettingsMenuContent.transform.FindChild("Description").GetComponent<TMP_Text>();
                 if (category.HasEntry("CustomModSettingsDescription")) modSettingsMenuDescription.text = category.GetEntry<string>("CustomModSettingsDescription").Value;
-                else modSettingsMenuDescription.text = $"Settings for {category.DisplayName} mod";
+                else modSettingsMenuDescription.text = $"settings for {category.DisplayName.ToLower()} mod";
 
                 modButtonPlaceholder = modSettingsMenuContent.transform.FindChild("Button").gameObject;
                 foreach (MelonPreferences_Entry entry in category.Entries)
                 {
+                    if (entry.Identifier == "CustomModSettingsDescription") continue;
                     GameObject button = GameObject.Instantiate(modButtonPlaceholder, modSettingsMenuContent.transform);
                     button.name = entry.DisplayName + "Button";
 
@@ -187,7 +194,7 @@ namespace Mod_Settings
                     buttonToOverride.onClick.AddListener((UnityAction)delegate { ChangeEntryContent(entry, button); });
 
                     TMP_Text textButton = button.GetComponentInChildren<TMP_Text>();
-                    textButton.text = entry.DisplayName + " : " + entry.BoxedValue.ToString();
+                    textButton.text = entry.DisplayName.ToLower() + " : " + entry.BoxedValue.ToString();
                 }
                 modButtonPlaceholder.SetActive(false);
             }
@@ -199,7 +206,7 @@ namespace Mod_Settings
             {
                 entry.Category.GetEntry<bool>(entry.Identifier).Value = !entry.Category.GetEntry<bool>(entry.Identifier).Value;
                 TMP_Text textButton = button.GetComponentInChildren<TMP_Text>();
-                textButton.text = entry.DisplayName + " : " + entry.BoxedValue.ToString();
+                textButton.text = entry.DisplayName.ToLower() + " : " + entry.BoxedValue.ToString();
             }
             else
             {
@@ -213,7 +220,7 @@ namespace Mod_Settings
         {
             if (!isInputOn) return;
 
-            currentButtonText.text = currentEntry.DisplayName + " : " + currentInput + "|";
+            currentButtonText.text = currentEntry.DisplayName.ToLower() + " : " + currentInput + "|";
             foreach (char c in Input.inputString)
             {
                 if (c == '\b')
@@ -224,7 +231,9 @@ namespace Mod_Settings
                 {
                     isInputOn = false;
                     currentEntry.BoxedValue = ConvertString(currentInput, currentEntry.BoxedValue.GetType());
-                    currentButtonText.text = currentEntry.DisplayName + " : " + currentEntry.BoxedValue.ToString();
+                    currentButtonText.text = currentEntry.DisplayName.ToLower() + " : " + currentEntry.BoxedValue.ToString();
+                    currentEntry = null;
+                    currentButtonText = null;
                     currentInput = "";
                 }
                 else currentInput += c;
@@ -232,7 +241,9 @@ namespace Mod_Settings
             if (Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(0))
             {
                 isInputOn = false;
-                currentButtonText.text = currentEntry.DisplayName + " : " + currentEntry.BoxedValue.ToString();
+                currentButtonText.text = currentEntry.DisplayName.ToLower() + " : " + currentEntry.BoxedValue.ToString();
+                currentEntry = null;
+                currentButtonText = null;
                 currentInput = "";
             }
         }
