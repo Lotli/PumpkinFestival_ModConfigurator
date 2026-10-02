@@ -7,6 +7,7 @@ using Il2CppInterop.Runtime;
 using MelonLoader;
 using Il2CppTMPro;
 using Il2Cpp;
+using UnityEngine.SceneManagement;
 
 namespace Mod_Settings
 {
@@ -51,13 +52,13 @@ namespace Mod_Settings
 
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
         {
-            if (sceneName == "PumpkinPickerScene")
+            if (sceneName == "Scene_Title")
             {
                 modSettingsPreferencesCategory.LoadFromFile();
 
-                originalSettingsButton = GameObject.Find("/UI/UICanvas/MainUI/ExtraOptions/OptionsButton");
+                originalSettingsButton = GameObject.Find("/__UI/Canvas_UI/MainUI/ExtraOptions/OptionsButton");
                 settingsButton = GameObject.Instantiate(originalSettingsButton);
-                settingsButton.transform.SetParent(GameObject.Find("/UI/UICanvas").transform);
+                settingsButton.transform.SetParent(GameObject.Find("/__UI/Canvas_UI").transform);
                 settingsButton.name = "ModSettingsButton";
                 settingsButton.transform.localPosition = new Vector3(0, 0, 0);
                 settingsButton.transform.localRotation = Quaternion.EulerAngles(0, 0, 0);
@@ -71,7 +72,7 @@ namespace Mod_Settings
                 textSettingButton = settingsButton.GetComponentInChildren<TMP_Text>();
                 textSettingButton.text = "Mod Settings";
 
-                mainUI = GameObject.Find("/UI/UICanvas/MainUI");
+                mainUI = GameObject.Find("/__UI/Canvas_UI/MainUI");
 
                 foreach (var obj in Resources.FindObjectsOfTypeAll<GameObject>())
                 {
@@ -100,10 +101,10 @@ namespace Mod_Settings
 
         private void OnSettingsButtonClicked()
         {
-            GameObject.Destroy(GameObject.Find("/UI/UICanvas/UI_ScrollingMenu_Base(Clone)"));
+            GameObject.Destroy(GameObject.Find("/__UI/Canvas_UI/UI_ScrollingMenu_Base(Clone)"));
             if (settingsMenuPrefab != null)
             {
-                settingsMenu = GameObject.Instantiate(settingsMenuPrefab, GameObject.Find("/UI/UICanvas").transform);
+                settingsMenu = GameObject.Instantiate(settingsMenuPrefab, GameObject.Find("/__UI/Canvas_UI").transform);
                 if (debugMode) PrintAllComponents(settingsMenu);
                 if (freezeMenuControls) settingsMenu.GetComponent<FocusedPlayerActions>().enabled = false;
 
@@ -170,7 +171,7 @@ namespace Mod_Settings
 
             if (settingsMenuPrefab != null)
             {
-                modSettingsMenu = GameObject.Instantiate(settingsMenuPrefab, GameObject.Find("/UI/UICanvas").transform);
+                modSettingsMenu = GameObject.Instantiate(settingsMenuPrefab, GameObject.Find("/__UI/Canvas_UI").transform);
                 if (freezeMenuControls) modSettingsMenu.GetComponent<FocusedPlayerActions>().enabled = false;
 
                 modSettingsMenuContent = modSettingsMenu.transform.GetChild(1).GetChild(0).GetChild(0).gameObject;
@@ -264,5 +265,50 @@ namespace Mod_Settings
 
             return Convert.ChangeType(input, type);
         }
+
+        /* Really badly written debug functions
+        
+        public void DumpScenes()
+        {
+            int sceneCount = SceneManager.sceneCount;
+
+            MelonLogger.Msg($"Loaded scenes: {sceneCount}");
+
+            for (int i = 0; i < sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+
+                MelonLogger.Msg($"========== SCENE: {scene.name} ==========");
+                MelonLogger.Msg($"Path: {scene.path}");
+                MelonLogger.Msg($"Loaded: {scene.isLoaded}");
+
+                foreach (GameObject root in scene.GetRootGameObjects())
+                {
+                    DumpObject(root, 0);
+                }
+            }
+        }
+
+        private void DumpObject(GameObject obj, int depth)
+        {
+            if (obj == null)
+                return;
+
+            string indent = new string(' ', depth * 2);
+
+            MelonLogger.Msg(
+                $"{indent}- {obj.name} " +
+                $"[Active: {obj.activeSelf}]"
+            );
+
+            for (int i = 0; i < obj.transform.childCount; i++)
+            {
+                Transform child = obj.transform.GetChild(i);
+
+                if (child != null)
+                    DumpObject(child.gameObject, depth + 1);
+            }
+        }
+        */
     }
 }

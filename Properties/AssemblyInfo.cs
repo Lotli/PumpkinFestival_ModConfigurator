@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using MelonLoader;
 using Mod_Settings; // The namespace of your mod class
 // ...
-[assembly: MelonInfo(typeof(ModSettingsClass), "Pumpkin Mod Settings", "1.0.0", "Lotli")]
+[assembly: MelonInfo(typeof(ModSettingsClass), "Pumpkin Mod Settings", "1.1.0", "Lotli")]
 [assembly: MelonGame("adamgryu", "Pumpkins")]
 
 // General Information about an assembly is controlled through the following
