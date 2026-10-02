@@ -10,6 +10,6 @@ In-game mod configurator for adamgryu's Annual Pumpkin Carving Festival. Automat
 
 ## Set up
 ### Melon Loader
-Recommended [melon loader](https://github.com/LavaGang/MelonLoader) version: v0.6.6\
-Other versions might also work but are still untested.\
+Recommended [melon loader](https://github.com/LavaGang/MelonLoader) version: v0.7.3\
+Other versions do not work (Unity 6 support was only added in v0.7.3).\
 Download the [latest version of the mod](https://github.com/Lotli/PumpkinFestival_ModConfigurator/releases/latest) and put it in the Mods folder.
