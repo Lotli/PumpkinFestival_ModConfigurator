@@ -265,8 +265,6 @@ namespace Mod_Settings
 
             return Convert.ChangeType(input, type);
         }
-
-        /* Really badly written debug functions
         
         public void DumpScenes()
         {
@@ -309,6 +307,5 @@ namespace Mod_Settings
                     DumpObject(child.gameObject, depth + 1);
             }
         }
-        */
     }
 }
